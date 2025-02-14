@@ -19,15 +19,17 @@ jobs:
         run: |
           ISSUE_NUMBER=${{ github.event.issue.number }}
 
+          echo "Searching for a branch containing issue #$ISSUE_NUMBER..."
+
           # Get all branches and filter for issue number
-          BRANCH_NAME=$(gh api repos/${{ github.repository }}/branches --jq ".[] | select(.name | test(\"${ISSUE_NUMBER}\")) | .name")
+          BRANCH_NAME=$(gh api repos/${{ github.repository }}/branches --jq ".[] | select(.name | test(\".*${ISSUE_NUMBER}.*\")) | .name" | head -n 1)
 
           if [ -z "$BRANCH_NAME" ]; then
-            echo "No branch found for issue #$ISSUE_NUMBER, skipping."
-            exit 0
+            echo "⚠️ No branch found for issue #$ISSUE_NUMBER, skipping."
+            exit 0  # Ensure the job does not fail
           fi
 
-          echo "Found branch: $BRANCH_NAME"
+          echo "✅ Found branch: $BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Delete Branch
@@ -35,8 +37,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -n "$BRANCH_NAME" ]; then
-            gh api --method DELETE repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME
-            echo "Deleted branch: $BRANCH_NAME"
+            gh api --method DELETE repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME && echo "🗑️ Deleted branch: $BRANCH_NAME"
           else
-            echo "No branch to delete."
+            echo "⚠️ No branch to delete, skipping."
           fi
