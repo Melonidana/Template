@@ -1,4 +1,5 @@
 name: Delete Branch When Issue is Closed
+
 on:
   issues:
     types: [closed]
@@ -7,17 +8,5 @@ jobs:
   delete-branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Delete Branch
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ISSUE_NUMBER=${{ github.event.issue.number }}
-          BRANCH_NAME=$(gh api repos/${{ github.repository }}/branches --jq ".[] | select(.name | contains(\"$ISSUE_NUMBER\")) | .name" | head -n 1)
-
-          if [ -z "$BRANCH_NAME" ]; then
-            echo "No matching branch found for issue #$ISSUE_NUMBER. Skipping."
-            exit 0
-          fi
-
-          gh api --method DELETE repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME
-          echo "Deleted branch: $BRANCH_NAME"
+      - name: Check if Workflow Triggered
+        run: echo "Workflow is triggered when issue is closed"
