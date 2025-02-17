@@ -1,0 +1,24 @@
+name: Create Branch on Issue Opened
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Branch
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          BRANCH_NAME="feature/issue-${ISSUE_NUMBER}"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions"
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
